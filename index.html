@@ -190,6 +190,7 @@
         }
         .btn-primary:active, .btn-secondary:active {
              box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+             transform: scale(0.98); /* Add subtle press effect */
         }
 
         .btn-primary {
@@ -257,25 +258,42 @@
          }
 
         /* --- Result Display --- */
-        .result-display {
+        .result-display-container { /* Container for both displays */
             background-color: var(--md-sys-color-secondary-container-light);
             color: var(--md-sys-color-on-secondary-container-light);
             border-radius: 1.5rem; /* Increased rounding */
-            padding: 1rem 1.5rem; /* Adjusted padding */
+            padding: 0.75rem 1.5rem; /* Adjusted padding */
             margin-top: 1rem; /* Adjusted margin */
             margin-bottom: 1.5rem; /* Add margin below */
             text-align: right; /* Align text to the right */
+            transition: background-color 0.5s ease, color 0.5s ease;
+            min-height: 80px; /* Give it a minimum height */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+         body.dark-mode .result-display-container {
+             background-color: var(--md-sys-color-secondary-container-dark);
+             color: var(--md-sys-color-on-secondary-container-dark);
+         }
+
+        .secondary-display { /* For showing the expression */
+            font-size: 0.9rem;
+            opacity: 0.7;
+            min-height: 1.25rem; /* Ensure space even when empty */
+            word-wrap: break-word;
+            overflow-x: auto; /* Scroll if expression gets too long */
+        }
+
+        .result-display { /* Main result/input display */
             font-size: 1.75rem; /* Adjusted font size */
             font-weight: 700;
             word-wrap: break-word;
             overflow-x: auto;
-            transition: background-color 0.5s ease, color 0.5s ease;
-            min-height: 60px; /* Give it a minimum height */
+            min-height: 30px; /* Min height for the main number */
+            /* Remove background/padding as it's now in the container */
         }
-         body.dark-mode .result-display {
-             background-color: var(--md-sys-color-secondary-container-dark);
-             color: var(--md-sys-color-on-secondary-container-dark);
-         }
+
 
         .result-label { /* This class wasn't used, but keeping for potential future use */
             color: var(--md-sys-color-on-secondary-container-light);
@@ -321,6 +339,7 @@
              background-color: var(--md-sys-color-surface-variant-light);
              box-shadow: 0 1px 2px rgba(0,0,0,0.08);
              height: 60px; /* Fixed height for buttons */
+             cursor: pointer; /* Ensure cursor indicates clickable */
          }
          body.dark-mode .calculator-grid button {
              color: var(--md-sys-color-on-surface-variant-dark);
@@ -329,15 +348,22 @@
 
         .calculator-grid button:hover {
              background-color: var(--md-sys-color-outline-variant-light);
+             filter: brightness(95%); /* Slight darken on hover */
          }
           body.dark-mode .calculator-grid button:hover {
              background-color: var(--md-sys-color-outline-variant-dark);
+              filter: brightness(110%); /* Slight lighten on hover */
          }
 
          .calculator-grid button:active {
-             box-shadow: 0 0 1px rgba(0,0,0,0.06);
+             box-shadow: inset 0 1px 2px rgba(0,0,0,0.1); /* Inset shadow on press */
              transform: scale(0.98);
+             filter: brightness(90%);
          }
+          body.dark-mode .calculator-grid button:active {
+             filter: brightness(120%);
+         }
+
 
          .calculator-grid button.operator {
              background-color: var(--md-sys-color-tertiary-container-light);
@@ -350,7 +376,6 @@
          }
 
          .calculator-grid button.operator:hover {
-             /* Use a slightly different hover for operators if desired */
              filter: brightness(95%);
          }
           body.dark-mode .calculator-grid button.operator:hover {
@@ -371,18 +396,20 @@
          .calculator-grid button.equals:hover {
             background-color: var(--md-sys-color-primary-container-light);
             color: var(--md-sys-color-on-primary-container-light);
+            filter: brightness(98%);
          }
           body.dark-mode .calculator-grid button.equals:hover {
              background-color: var(--md-sys-color-primary-container-dark);
              color: var(--md-sys-color-on-primary-container-dark);
+             filter: brightness(105%);
          }
 
          .calculator-grid button.zero {
              grid-column: span 2;
          }
 
-          /* --- Graph Container --- */
-          #graph-container {
+         /* --- Graph Container --- */
+         #graph-container {
              width: 100%;
              height: 350px; /* Reduced height */
              margin-top: 1.5rem;
@@ -431,31 +458,34 @@
 
         <div id="calculator-content" class="relative">
             <section id="basic-calculator" class="calculator-section active">
-                <div class="card max-w-sm mx-auto"> <div class="result-display" id="basic-result">0</div>
+                <div class="card max-w-sm mx-auto"> <div class="result-display-container">
+                        <div class="secondary-display" id="basic-secondary-display">&nbsp;</div> <div class="result-display" id="basic-result">0</div> </div>
                     <div class="calculator-grid">
-                        <button class="btn-secondary clear" onclick="clearDisplay()">C</button>
-                        <button class="operator" onclick="appendOperator('/')">÷</button>
-                        <button class="operator" onclick="appendOperator('*')">×</button>
-                        <button class="operator" onclick="backspace()">DEL</button> <button onclick="appendNumber('7')">7</button>
-                        <button onclick="appendNumber('8')">8</button>
-                        <button onclick="appendNumber('9')">9</button>
-                        <button class="operator" onclick="appendOperator('-')">-</button>
+                         <button class="btn-secondary clear" onclick="clearDisplay()">C</button>
+                        <button class="operator" onclick="handleOperator('/')">÷</button>
+                        <button class="operator" onclick="handleOperator('*')">×</button>
+                        <button class="btn-secondary" onclick="backspace()">DEL</button> <button onclick="inputDigit('7')">7</button>
+                        <button onclick="inputDigit('8')">8</button>
+                        <button onclick="inputDigit('9')">9</button>
+                        <button class="operator" onclick="handleOperator('-')">-</button>
 
-                        <button onclick="appendNumber('4')">4</button>
-                        <button onclick="appendNumber('5')">5</button>
-                        <button onclick="appendNumber('6')">6</button>
-                        <button class="operator" onclick="appendOperator('+')">+</button>
+                        <button onclick="inputDigit('4')">4</button>
+                        <button onclick="inputDigit('5')">5</button>
+                        <button onclick="inputDigit('6')">6</button>
+                        <button class="operator" onclick="handleOperator('+')">+</button>
 
-                        <button onclick="appendNumber('1')">1</button>
-                        <button onclick="appendNumber('2')">2</button>
-                        <button onclick="appendNumber('3')">3</button>
-                        <button class="equals" onclick="calculate()">=</button> <button class="zero" onclick="appendNumber('0')">0</button> <button onclick="appendDecimal()">.</button>
+                        <button onclick="inputDigit('1')">1</button>
+                        <button onclick="inputDigit('2')">2</button>
+                        <button onclick="inputDigit('3')">3</button>
+                        <button class="equals" onclick="calculate()">=</button> <button class="zero" onclick="inputDigit('0')">0</button> <button onclick="inputDecimal()">.</button>
                         </div>
                 </div>
             </section>
 
             <section id="scientific-calculator" class="calculator-section">
-                 <div class="card max-w-md mx-auto"> <div class="result-display" id="scientific-result">0</div>
+                 <div class="card max-w-md mx-auto"> <div class="result-display-container"> <div class="secondary-display" id="scientific-secondary-display">&nbsp;</div>
+                        <div class="result-display" id="scientific-result">0</div>
+                     </div>
                     <div class="grid grid-cols-5 gap-2 p-2"> <button class="btn-secondary text-xs" onclick="setMode('deg')">deg</button>
                         <button class="btn-secondary text-xs" onclick="setMode('rad')">rad</button>
                         <button class="btn-secondary text-xs" onclick="calculateScientific('inv')">Inv</button>
@@ -464,8 +494,7 @@
                         <button class="btn-secondary" onclick="calculateScientific('sin')">sin</button>
                         <button class="btn-secondary" onclick="calculateScientific('cos')">cos</button>
                         <button class="btn-secondary" onclick="calculateScientific('tan')">tan</button>
-                        <button class="btn-secondary" onclick="calculateScientific('pow')">xʸ</button>
-                        <button class="btn-secondary" onclick="calculateScientific('sqrt')">√</button>
+                        <button class="btn-secondary" onclick="appendOperatorScientific('**')">xʸ</button> <button class="btn-secondary" onclick="calculateScientific('sqrt')">√</button>
                         <button class="btn-secondary" onclick="calculateScientific('log')">log</button>
                         <button class="btn-secondary" onclick="calculateScientific('ln')">ln</button>
                         <button class="btn-secondary" onclick="appendOperatorScientific('(')">(</button>
@@ -485,7 +514,7 @@
                         <button onclick="appendNumberScientific('2')">2</button>
                         <button onclick="appendNumberScientific('3')">3</button>
                         <button class="operator" onclick="appendOperatorScientific('-')">-</button>
-                         <button class="equals row-span-2" onclick="calculateScientific()">=</button> <button class="zero col-span-2" onclick="appendNumberScientific('0')">0</button> <button onclick="appendDecimalScientific()">.</button>
+                         <button class="equals row-span-2" onclick="calculateScientific('=')">=</button> <button class="zero col-span-2" onclick="appendNumberScientific('0')">0</button> <button onclick="appendDecimalScientific()">.</button>
                         <button class="operator" onclick="appendOperatorScientific('+')">+</button>
                     </div>
                 </div>
@@ -497,8 +526,7 @@
                         <label for="amount" class="block text-sm font-medium">Amount</label>
                         <input type="number" id="amount" placeholder="Enter amount" class="input-field" value="100">
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 items-center">
-                        <div>
+                    <div class="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-4 mb-4 items-center"> <div>
                             <label for="from-currency" class="block text-sm font-medium">From</label>
                             <select id="from-currency" class="select-field">
                                 <option value="USD">USD - US Dollar</option>
@@ -510,7 +538,7 @@
                                 <option value="INR">INR - Indian Rupee</option>
                             </select>
                         </div>
-                         <div class="text-center hidden md:block"> <button id="swap-currency" class="btn-secondary p-2 mt-4"><i class="fas fa-exchange-alt"></i></button>
+                         <div class="text-center"> <button id="swap-currency" class="btn-secondary p-2 mt-4"><i class="fas fa-exchange-alt"></i></button>
                          </div>
                         <div>
                             <label for="to-currency" class="block text-sm font-medium">To</label>
@@ -524,11 +552,10 @@
                                 <option value="INR">INR - Indian Rupee</option>
                             </select>
                         </div>
-                         <div class="text-center md:hidden"> <button id="swap-currency-sm" class="btn-secondary p-2 mt-2"><i class="fas fa-exchange-alt"></i></button>
                          </div>
-                    </div>
                     <button id="convert-currency" class="btn-primary w-full mt-2">Convert</button>
-                    <div class="result-display mt-4" id="currency-result"></div>
+                     <div class="result-display-container mt-4"> <div class="secondary-display">&nbsp;</div> <div class="result-display" id="currency-result"></div>
+                    </div>
                     <p id="currency-error" class="error-message mt-2 text-center"></p>
                 </div>
             </section>
@@ -571,7 +598,8 @@
                         </div>
                     </div>
                     <button id="convert-unit" class="btn-primary w-full">Convert</button>
-                    <div class="result-display mt-4" id="unit-result"></div>
+                     <div class="result-display-container mt-4"> <div class="secondary-display">&nbsp;</div> <div class="result-display" id="unit-result"></div>
+                    </div>
                     <p id="unit-error" class="error-message mt-2 text-center"></p>
                 </div>
             </section>
@@ -592,7 +620,10 @@
                         <input type="number" id="loan-term" placeholder="e.g., 5" class="input-field" value="5">
                     </div>
                     <button id="calculate-loan" class="btn-primary w-full mt-2">Calculate</button>
-                    <div class="result-display mt-4" id="loan-result"></div>
+                    <div class="result-display-container mt-4" id="loan-result-container">
+                        <div class="secondary-display">&nbsp;</div>
+                        <div class="result-display" id="loan-result"></div>
+                    </div>
                     <p id="loan-error" class="error-message mt-2 text-center"></p>
                 </div>
             </section>
@@ -623,7 +654,7 @@
 
     <script>
         // --- Global State & Constants ---
-        const DEBUG = false; // Set to true for console logs
+        const DEBUG = true; // Set to true for console logs
         let isDarkMode = document.body.classList.contains('dark-mode'); // Check initial state
         let scientificMode = 'deg'; // 'deg' or 'rad'
         let inverseMode = false; // For scientific inverse functions
@@ -637,9 +668,11 @@
 
         // Basic Calc Elements
         const basicResultDisplay = document.getElementById('basic-result');
+        const basicSecondaryDisplay = document.getElementById('basic-secondary-display'); // Added secondary display
 
         // Scientific Calc Elements
         const scientificResultDisplay = document.getElementById('scientific-result');
+        const scientificSecondaryDisplay = document.getElementById('scientific-secondary-display'); // Added secondary display
 
         // Currency Calc Elements
         const amountInput = document.getElementById('amount');
@@ -649,7 +682,7 @@
         const currencyResultDisplay = document.getElementById('currency-result');
         const currencyError = document.getElementById('currency-error');
         const swapCurrencyBtn = document.getElementById('swap-currency');
-        const swapCurrencySmBtn = document.getElementById('swap-currency-sm');
+        // const swapCurrencySmBtn = document.getElementById('swap-currency-sm'); // Removed
 
 
         // Unit Conv Elements
@@ -667,7 +700,9 @@
         const interestRateInput = document.getElementById('interest-rate');
         const loanTermInput = document.getElementById('loan-term');
         const calculateLoanBtn = document.getElementById('calculate-loan');
+        const loanResultContainer = document.getElementById('loan-result-container'); // Target container
         const loanResultDisplay = document.getElementById('loan-result');
+        const loanSecondaryDisplay = loanResultContainer.querySelector('.secondary-display'); // Get secondary within loan
         const loanError = document.getElementById('loan-error');
 
         // Graphing Calc Elements
@@ -681,8 +716,13 @@
         // --- Helper Functions ---
         function log(...args) {
             if (DEBUG) {
-                console.log(...args);
+                console.log('[CALC]', ...args);
             }
+        }
+
+        function isBasicCalculatorActive() {
+             const activeNavItem = document.querySelector('.calculator-nav-item.active');
+             return activeNavItem && activeNavItem.dataset.target === 'basic-calculator';
         }
 
         function updateActiveNav(targetId) {
@@ -698,7 +738,8 @@
             if (targetId === 'graphing-calculator') {
                 // Ensure functionPlot is available before plotting
                  if (typeof functionPlot === 'function') {
-                    plotGraph();
+                    // Delay slightly to ensure container is rendered and sized
+                    setTimeout(plotGraph, 50);
                  } else {
                      console.error("functionPlot library not loaded yet.");
                      graphError.textContent = "Graphing library loading...";
@@ -720,33 +761,44 @@
         }
 
         // --- Basic Calculator State & Functions ---
-        let basicDisplayValue = '0';
-        let basicFirstOperand = null;
-        let basicWaitingForSecondOperand = false;
-        let basicOperator = null;
+        let basicDisplayValue = '0'; // Current number being entered or result
+        let basicFirstOperand = null; // First number in an operation
+        let basicWaitingForSecondOperand = false; // Flag: true after operator is pressed
+        let basicOperator = null; // The pending operator (+, -, *, /)
+        let basicExpression = ''; // String to show in secondary display
 
         function updateBasicDisplay() {
             basicResultDisplay.textContent = basicDisplayValue;
-            log("Basic Display:", basicDisplayValue);
+            // Use non-breaking space if empty to maintain height
+            basicSecondaryDisplay.textContent = basicExpression || '\u00A0';
+            log("Basic Display:", basicDisplayValue, "| Expression:", basicExpression);
         }
 
         function inputDigit(digit) {
+            // If waiting for second operand, start new number and clear waiting flag
             if (basicWaitingForSecondOperand) {
                 basicDisplayValue = digit;
                 basicWaitingForSecondOperand = false;
             } else {
+                // Prevent leading zeros unless it's the only digit
                 basicDisplayValue = basicDisplayValue === '0' ? digit : basicDisplayValue + digit;
             }
+             // Limit display length (optional)
+             if (basicDisplayValue.length > 15) {
+                 basicDisplayValue = basicDisplayValue.slice(0, 15);
+             }
             updateBasicDisplay();
         }
 
         function inputDecimal() {
+            // If waiting for second operand, start with '0.'
             if (basicWaitingForSecondOperand) {
                 basicDisplayValue = '0.';
                 basicWaitingForSecondOperand = false;
                 updateBasicDisplay();
                 return;
             }
+            // Add decimal only if not already present
             if (!basicDisplayValue.includes('.')) {
                 basicDisplayValue += '.';
             }
@@ -756,58 +808,101 @@
          function handleOperator(nextOperator) {
             const inputValue = parseFloat(basicDisplayValue);
 
-            if (basicOperator && basicWaitingForSecondOperand) {
-                basicOperator = nextOperator;
-                log("Operator changed to:", nextOperator);
-                return;
-            }
+             // Handle case where operator is pressed right after '='
+             if (basicOperator === null && basicWaitingForSecondOperand) {
+                 basicWaitingForSecondOperand = false; // Allow chaining after equals
+             }
 
-            if (basicFirstOperand === null && !isNaN(inputValue)) {
-                basicFirstOperand = inputValue;
-            } else if (basicOperator) {
-                const result = performBasicCalculation[basicOperator](basicFirstOperand, inputValue);
+            // If an operator already exists and we are not waiting for the second number,
+            // perform the previous calculation first (chained operations like 5 + 3 * 2)
+            if (basicOperator && !basicWaitingForSecondOperand) {
+                const result = performCalculation(); // Calculate previous operation
                 if (result === 'Error') {
-                    basicDisplayValue = 'Error';
-                    resetCalculator(); // Reset state on error
-                } else {
-                    basicDisplayValue = `${parseFloat(result.toFixed(7))}`; // Limit precision
-                    basicFirstOperand = result;
+                    clearDisplay(); // Reset on error
+                    basicResultDisplay.textContent = 'Error';
+                    return;
                 }
-                updateBasicDisplay();
+                basicDisplayValue = String(result);
+                basicFirstOperand = result; // Store result as the new first operand
+            } else if (basicFirstOperand === null) {
+                 // If this is the first operator press, store the current display value
+                basicFirstOperand = inputValue;
             }
 
-            basicWaitingForSecondOperand = true;
-            basicOperator = nextOperator;
+
+            basicWaitingForSecondOperand = true; // Set flag: ready for the second number
+            basicOperator = nextOperator; // Store the new operator
+            basicExpression = `${basicFirstOperand} ${basicOperator}`; // Update secondary display
+
+            updateBasicDisplay(); // Update both displays
             log("Operator:", basicOperator, "First Operand:", basicFirstOperand);
         }
 
-
-        const performBasicCalculation = {
-            '/': (first, second) => second === 0 ? 'Error' : first / second,
-            '*': (first, second) => first * second,
-            '+': (first, second) => first + second,
-            '-': (first, second) => first - second,
-            '=': (first, second) => second // Should not be called directly like this
-        };
-
-        function calculate() {
-            if (basicOperator === null || basicWaitingForSecondOperand) return; // Nothing to calculate
+        // Renamed to avoid conflict with scientific 'calculate'
+        function performCalculation() {
+            if (basicOperator === null || basicFirstOperand === null) {
+                log("PerformCalculation: No operator or first operand");
+                return parseFloat(basicDisplayValue); // Return current value if nothing to calculate
+            }
 
             const secondOperand = parseFloat(basicDisplayValue);
-            const result = performBasicCalculation[basicOperator](basicFirstOperand, secondOperand);
+            log(`Performing: ${basicFirstOperand} ${basicOperator} ${secondOperand}`);
+
+            let result;
+            switch (basicOperator) {
+                case '+': result = basicFirstOperand + secondOperand; break;
+                case '-': result = basicFirstOperand - secondOperand; break;
+                case '*': result = basicFirstOperand * secondOperand; break;
+                case '/':
+                    if (secondOperand === 0) {
+                        log("Error: Division by zero");
+                        return 'Error'; // Indicate error
+                    }
+                    result = basicFirstOperand / secondOperand;
+                    break;
+                default:
+                    log("PerformCalculation: Unknown operator", basicOperator);
+                    return secondOperand; // Should not happen
+            }
+
+            // Limit precision of the result
+            result = parseFloat(result.toPrecision(12));
+            log("Calculation Result:", result);
+            return result;
+        }
+
+
+        function calculate() {
+            // If no operator is set, or we are waiting for the second operand but haven't received it
+            // (e.g., user presses 5 + =), do nothing or just finalize the first number.
+            if (basicOperator === null || basicWaitingForSecondOperand) {
+                 log("Calculate: Nothing to calculate or waiting for second operand.");
+                 // Finalize the current number if needed (e.g. if user types '5=' )
+                 basicWaitingForSecondOperand = true; // Treat as if calculation happened for chaining
+                 basicExpression = `${basicDisplayValue} =`;
+                 updateBasicDisplay();
+                 return;
+             }
+
+
+            const result = performCalculation();
 
             if (result === 'Error') {
                 basicDisplayValue = 'Error';
+                basicExpression = ''; // Clear expression on error
             } else {
-                 basicDisplayValue = `${parseFloat(result.toFixed(7))}`; // Limit precision
+                basicExpression = `${basicFirstOperand} ${basicOperator} ${basicDisplayValue} =`; // Show full expression
+                basicDisplayValue = String(result); // Show result in main display
             }
 
             updateBasicDisplay();
-            // Keep the result as the first operand for chained calculations
-            basicFirstOperand = result === 'Error' ? null : parseFloat(basicDisplayValue);
-            basicOperator = null; // Reset operator after calculation
-            basicWaitingForSecondOperand = true; // Ready for new input or operator
-            log("Calculation result:", basicDisplayValue);
+
+            // Prepare for potential chaining: result becomes the new first operand
+            basicFirstOperand = (result === 'Error') ? null : result;
+            // Keep basicOperator null until a new one is pressed
+            basicOperator = null;
+            // Set waiting flag true, so next digit starts a new number
+            basicWaitingForSecondOperand = true;
         }
 
 
@@ -816,7 +911,8 @@
             basicFirstOperand = null;
             basicWaitingForSecondOperand = false;
             basicOperator = null;
-            log("Calculator Reset");
+            basicExpression = '';
+            log("Basic Calculator Reset");
         }
 
         function clearDisplay() {
@@ -825,8 +921,14 @@
         }
 
         function backspace() {
-            if (basicWaitingForSecondOperand) return; // Don't backspace if waiting for second operand
+            // Don't backspace if waiting for the second operand (after operator press)
+            if (basicWaitingForSecondOperand) {
+                 log("Backspace ignored: Waiting for second operand.");
+                 return;
+             }
+            // Remove last character from the main display value
             basicDisplayValue = basicDisplayValue.slice(0, -1);
+            // If display becomes empty or just '-', reset to '0'
             if (basicDisplayValue === '' || basicDisplayValue === '-') {
                 basicDisplayValue = '0';
             }
@@ -834,22 +936,30 @@
         }
 
         // --- Scientific Calculator State & Functions ---
-        // Reusing basic calc logic where possible, but needs separate state
         let sciDisplayValue = '0';
-        // Using eval for simplicity here, but be cautious in production environments
-        // A dedicated math expression parser would be safer.
+        let sciExpression = ''; // For secondary display if needed
 
         function updateDisplayScientific() {
             scientificResultDisplay.textContent = sciDisplayValue;
-             log("Scientific Display:", sciDisplayValue);
+            scientificSecondaryDisplay.textContent = sciExpression || '\u00A0'; // Show expression or space
+            log("Scientific Display:", sciDisplayValue, "| Expression:", sciExpression);
         }
 
         function appendNumberScientific(number) {
-            if (sciDisplayValue === '0' || sciDisplayValue === 'Error' || sciDisplayValue === 'Infinity') {
+             // If display shows Error or Infinity, start fresh
+            if (sciDisplayValue === 'Error' || !isFinite(parseFloat(sciDisplayValue))) {
                 sciDisplayValue = number;
-            } else {
+            } else if (sciDisplayValue === '0' && number !== '.') {
+                 // Replace '0' unless adding a decimal
+                 sciDisplayValue = number;
+            }
+            else {
                 sciDisplayValue += number;
             }
+             // Limit display length (optional)
+             if (sciDisplayValue.length > 25) {
+                 sciDisplayValue = sciDisplayValue.slice(0, 25);
+             }
             updateDisplayScientific();
         }
 
@@ -861,9 +971,8 @@
         }
 
         function appendOperatorScientific(op) {
-             // Add spaces around operators for easier parsing/evaluation if needed
-             // Or handle directly in calculateScientific
              if (sciDisplayValue === 'Error' || sciDisplayValue === 'Infinity') sciDisplayValue = '0';
+             // Append operator to the current display value (building the expression)
              sciDisplayValue += op;
              updateDisplayScientific();
         }
@@ -878,116 +987,156 @@
 
         function clearDisplayScientific() {
             sciDisplayValue = '0';
-            inverseMode = false;
+            sciExpression = '';
+            inverseMode = false; // Reset inverse mode
             updateDisplayScientific();
             log("Scientific Calculator Reset");
         }
 
          function setMode(mode) {
             scientificMode = mode;
-            // Optionally, highlight the active mode button
+            // Optionally, highlight the active mode button visually
+            document.querySelectorAll('#scientific-calculator .btn-secondary.text-xs').forEach(btn => {
+                btn.classList.remove('bg-opacity-50'); // Remove highlight from others
+                if (btn.textContent === mode) {
+                    btn.classList.add('bg-opacity-50'); // Highlight active
+                }
+            });
             log("Scientific mode set to:", mode);
          }
 
         function factorial(n) {
-            if (n < 0) return NaN; // Factorial is not defined for negative numbers
+             // Handle non-integers and negatives
+            if (n < 0 || !Number.isInteger(n)) return NaN;
             if (n === 0 || n === 1) return 1;
             let result = 1;
+            // Use loop for potentially large numbers (avoids recursion depth limits)
             for (let i = n; i > 1; i--) {
                 result *= i;
             }
-            return result;
+             // Check for potential Infinity
+             return isFinite(result) ? result : Infinity;
         }
+
+        // Evaluate the scientific expression using eval (use cautiously)
+        function evaluateScientificExpression(expression) {
+             try {
+                 // More robust replacements
+                 expression = expression
+                     .replace(/π/g, 'Math.PI')
+                     .replace(/e/g, 'Math.E')
+                     // Ensure ** is used for power, handle potential double operators carefully
+                     .replace(/(?<!\*)\^(?!\*)/g, '**') // Replace ^ with ** if not already **
+                     .replace(/√\(/g, 'Math.sqrt(') // Match sqrt followed by (
+                     .replace(/log\(/g, 'Math.log10(')
+                     .replace(/ln\(/g, 'Math.log(');
+
+                 // Trig functions with degree/radian conversion
+                 const trigReplacements = (match, func, content) => {
+                     const prefix = scientificMode === 'deg' ? '(Math.PI/180)*' : '';
+                     return `Math.${func}(${prefix}${content}`;
+                 };
+                 expression = expression.replace(/(sin|cos|tan)\(([^)]*)\)/g, trigReplacements);
+
+
+                 log("Evaluating scientific expression:", expression);
+                 // Use Function constructor for slightly safer evaluation than direct eval
+                 return new Function(`return ${expression}`)();
+
+             } catch (error) {
+                 log("Evaluation Error:", error);
+                 return 'Error';
+             }
+         }
+
 
         function calculateScientific(func) {
             log("Calculating Scientific:", func, "Current Display:", sciDisplayValue);
-            try {
-                let currentVal = parseFloat(sciDisplayValue); // Get current value if needed for unary ops
-                let result;
+            let currentVal;
+             // Try to parse the current display, may fail if it's complex
+             try {
+                 currentVal = parseFloat(sciDisplayValue);
+             } catch {
+                 currentVal = NaN;
+             }
 
-                if (func === '=') { // Evaluate the expression
-                    // Basic replacements for evaluation
-                    let expression = sciDisplayValue
-                        .replace(/π/g, 'Math.PI')
-                        .replace(/e/g, 'Math.E')
-                        .replace(/\^/g, '**') // Exponentiation
-                        .replace(/√/g, 'Math.sqrt') // Basic sqrt replacement
-                        .replace(/log\(/g, 'Math.log10(') // log base 10
-                        .replace(/ln\(/g, 'Math.log('); // natural log
+            let result;
+            let requiresEval = false; // Flag if we need to evaluate the whole string
 
-                    // Handle trig functions based on mode
-                    expression = expression.replace(/sin\(/g, `Math.sin(${scientificMode === 'deg' ? 'Math.PI/180*' : ''}`)
-                                         .replace(/cos\(/g, `Math.cos(${scientificMode === 'deg' ? 'Math.PI/180*' : ''}`)
-                                         .replace(/tan\(/g, `Math.tan(${scientificMode === 'deg' ? 'Math.PI/180*' : ''}`);
+            if (func === '=') {
+                 requiresEval = true;
+                 sciExpression = sciDisplayValue + ' ='; // Show expression in secondary
+                 result = evaluateScientificExpression(sciDisplayValue);
 
-                    // Add more function replacements as needed
+            } else if (func === 'inv') {
+                inverseMode = !inverseMode;
+                // Add visual indicator for inverse mode
+                 const invButton = document.querySelector('#scientific-calculator button[onclick="calculateScientific(\'inv\')"]');
+                 if (invButton) invButton.classList.toggle('bg-opacity-50', inverseMode); // Example visual toggle
+                log("Inverse mode:", inverseMode);
+                return; // Don't change display, just toggle mode
 
-                    log("Evaluating expression:", expression);
-                    result = eval(expression);
+            } else if (func === 'pi') {
+                 // Replace current value or append if it's an operator
+                 sciDisplayValue = (isNaN(currentVal) || sciDisplayValue === '0') ? 'π' : sciDisplayValue + 'π';
+                 updateDisplayScientific(); return;
+            } else if (func === 'e') {
+                 sciDisplayValue = (isNaN(currentVal) || sciDisplayValue === '0') ? 'e' : sciDisplayValue + 'e';
+                 updateDisplayScientific(); return;
 
-                } else if (func === 'inv') {
-                    inverseMode = !inverseMode;
-                    // Add visual indicator for inverse mode if desired
-                    log("Inverse mode:", inverseMode);
-                    return; // Don't change display, just toggle mode
-                } else if (func === 'pi') {
-                    result = Math.PI;
-                } else if (func === 'e') {
-                    result = Math.E;
-                } else if (func === 'fact') {
-                    result = factorial(currentVal);
-                } else if (!isNaN(currentVal)) { // Unary operations on the current number
-                    let angle = scientificMode === 'deg' ? currentVal * (Math.PI / 180) : currentVal;
-                    switch (func) {
-                        case 'sin': result = inverseMode ? Math.asin(currentVal) : Math.sin(angle); break;
-                        case 'cos': result = inverseMode ? Math.acos(currentVal) : Math.cos(angle); break;
-                        case 'tan': result = inverseMode ? Math.atan(currentVal) : Math.tan(angle); break;
-                        case 'log': result = inverseMode ? Math.pow(10, currentVal) : Math.log10(currentVal); break; // log10
-                        case 'ln': result = inverseMode ? Math.exp(currentVal) : Math.log(currentVal); break; // natural log
-                        case 'sqrt': result = inverseMode ? currentVal * currentVal : Math.sqrt(currentVal); break;
-                        // Add more inverse functions if needed
-                        default:
-                            // If it's not a known function, append it as an operator/symbol
-                            appendOperatorScientific(func);
-                            return;
-                    }
-                     // Convert back to degrees if necessary for inverse trig results
-                    if (inverseMode && ['sin', 'cos', 'tan'].includes(func) && scientificMode === 'deg') {
-                        result = result * (180 / Math.PI);
-                    }
-                } else {
-                     // If not a number and not '=', treat as operator/symbol
-                     appendOperatorScientific(func);
-                     return;
-                }
+            } else if (func === 'fact') {
+                 if (!isNaN(currentVal)) {
+                     result = factorial(currentVal);
+                     sciExpression = `fact(${currentVal}) =`;
+                 } else { result = 'Error'; } // Factorial needs a number
 
+            } else if (!isNaN(currentVal)) { // Apply unary function to the current number
+                 let angle = scientificMode === 'deg' ? currentVal * (Math.PI / 180) : currentVal;
+                 let funcName = func;
+                 let opSymbol = func; // Symbol for expression display
 
-                if (isNaN(result) || !isFinite(result)) {
-                    sciDisplayValue = 'Error';
-                } else {
-                    sciDisplayValue = String(parseFloat(result.toFixed(10))); // Limit precision
-                }
-                inverseMode = false; // Reset inverse mode after use
+                 switch (func) {
+                     case 'sin': result = inverseMode ? Math.asin(currentVal) : Math.sin(angle); funcName = inverseMode ? 'asin' : 'sin'; break;
+                     case 'cos': result = inverseMode ? Math.acos(currentVal) : Math.cos(angle); funcName = inverseMode ? 'acos' : 'cos'; break;
+                     case 'tan': result = inverseMode ? Math.atan(currentVal) : Math.tan(angle); funcName = inverseMode ? 'atan' : 'tan'; break;
+                     case 'log': result = inverseMode ? Math.pow(10, currentVal) : Math.log10(currentVal); funcName = inverseMode ? '10^' : 'log'; break;
+                     case 'ln': result = inverseMode ? Math.exp(currentVal) : Math.log(currentVal); funcName = inverseMode ? 'e^' : 'ln'; break;
+                     case 'sqrt': result = inverseMode ? currentVal * currentVal : Math.sqrt(currentVal); opSymbol = inverseMode ? 'sqr' : '√'; funcName = opSymbol; break;
+                     default: // If not a known function, treat as operator/symbol to append
+                         appendOperatorScientific(func);
+                         return;
+                 }
+                 // Convert back to degrees if necessary for inverse trig results
+                 if (inverseMode && ['sin', 'cos', 'tan'].includes(func) && scientificMode === 'deg') {
+                     result = result * (180 / Math.PI);
+                 }
+                 sciExpression = `${funcName}(${currentVal}) =`; // Show function application
 
-            } catch (error) {
-                log("Scientific Calc Error:", error);
-                sciDisplayValue = 'Error';
+            } else {
+                 // If current display is not a simple number, just append the operator/symbol
+                 appendOperatorScientific(func);
+                 return;
             }
+
+            // --- Update display after calculation ---
+            if (result === 'Error' || isNaN(result) || !isFinite(result)) {
+                sciDisplayValue = 'Error';
+                if (!requiresEval) sciExpression = ''; // Clear expression only if it wasn't an eval attempt
+            } else {
+                // Format result nicely
+                sciDisplayValue = String(parseFloat(result.toPrecision(12)));
+            }
+
+            inverseMode = false; // Reset inverse mode after use
+            const invButton = document.querySelector('#scientific-calculator button[onclick="calculateScientific(\'inv\')"]');
+            if (invButton) invButton.classList.remove('bg-opacity-50'); // Remove visual toggle
+
             updateDisplayScientific();
         }
 
 
         // --- Currency Exchange Functions ---
-        // Using a simple fixed rate object. For real-world use, fetch rates from an API.
-        const exchangeRates = {
-            USD: 1.0,    // Base currency
-            EUR: 0.92,   // Example rate: 1 USD = 0.92 EUR
-            GBP: 0.79,   // Example rate: 1 USD = 0.79 GBP
-            CAD: 1.36,   // Example rate: 1 USD = 1.36 CAD
-            JPY: 157.4,  // Example rate: 1 USD = 157.4 JPY
-            AUD: 1.50,   // Example rate: 1 USD = 1.50 AUD
-            INR: 83.5,   // Example rate: 1 USD = 83.5 INR
-        };
+        const exchangeRates = { USD: 1.0, EUR: 0.92, GBP: 0.79, CAD: 1.36, JPY: 157.4, AUD: 1.50, INR: 83.5 };
 
         function convertCurrency() {
             const amount = parseFloat(amountInput.value);
@@ -995,28 +1144,28 @@
             const toCurrency = toCurrencySelect.value;
             log("Converting Currency:", amount, fromCurrency, "to", toCurrency);
 
-            currencyError.textContent = ''; // Clear previous errors
-            currencyResultDisplay.textContent = ''; // Clear previous result
+            currencyError.textContent = '';
+            currencyResultDisplay.textContent = '';
 
             if (isNaN(amount) || amount <= 0) {
                 currencyError.textContent = 'Please enter a valid positive amount.';
                 return;
             }
-
             if (!exchangeRates[fromCurrency] || !exchangeRates[toCurrency]) {
-                currencyError.textContent = 'Invalid currency selection.';
-                log("Invalid currency:", fromCurrency, toCurrency);
-                return;
+                currencyError.textContent = 'Invalid currency selection.'; return;
             }
 
             const rateFrom = exchangeRates[fromCurrency];
             const rateTo = exchangeRates[toCurrency];
-
-            // Convert amount to base currency (USD) first, then to target currency
             const amountInUSD = amount / rateFrom;
             const convertedAmount = amountInUSD * rateTo;
 
-            currencyResultDisplay.textContent = `${amount.toLocaleString()} ${fromCurrency} = ${convertedAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })} ${toCurrency}`;
+            currencyResultDisplay.textContent = `${convertedAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
+            // Update secondary display in currency section
+            const currencySecondaryDisplay = currencyResultDisplay.closest('.result-display-container').querySelector('.secondary-display');
+            if (currencySecondaryDisplay) {
+                currencySecondaryDisplay.textContent = `${amount.toLocaleString()} ${fromCurrency} to ${toCurrency}`;
+            }
             log("Conversion Result:", convertedAmount);
         }
 
@@ -1032,52 +1181,12 @@
 
         // --- Unit Conversion Functions ---
         const units = {
-            length: [
-                { name: 'Meter (m)', value: 'meter', factor: 1 },
-                { name: 'Kilometer (km)', value: 'kilometer', factor: 1000 },
-                { name: 'Centimeter (cm)', value: 'centimeter', factor: 0.01 },
-                { name: 'Millimeter (mm)', value: 'millimeter', factor: 0.001 },
-                { name: 'Mile (mi)', value: 'mile', factor: 1609.34 },
-                { name: 'Yard (yd)', value: 'yard', factor: 0.9144 },
-                { name: 'Foot (ft)', value: 'foot', factor: 0.3048 },
-                { name: 'Inch (in)', value: 'inch', factor: 0.0254 },
-            ],
-            mass: [
-                { name: 'Kilogram (kg)', value: 'kilogram', factor: 1 },
-                { name: 'Gram (g)', value: 'gram', factor: 0.001 },
-                { name: 'Milligram (mg)', value: 'milligram', factor: 0.000001 },
-                { name: 'Pound (lb)', value: 'pound', factor: 0.453592 },
-                { name: 'Ounce (oz)', value: 'ounce', factor: 0.0283495 },
-            ],
-            temperature: [ // Special handling needed for temperature
-                { name: 'Celsius (°C)', value: 'celsius' },
-                { name: 'Fahrenheit (°F)', value: 'fahrenheit' },
-                { name: 'Kelvin (K)', value: 'kelvin' },
-            ],
-            time: [
-                { name: 'Second (s)', value: 'second', factor: 1 },
-                { name: 'Minute (min)', value: 'minute', factor: 60 },
-                { name: 'Hour (hr)', value: 'hour', factor: 3600 },
-                { name: 'Day (d)', value: 'day', factor: 86400 },
-                { name: 'Week (wk)', value: 'week', factor: 604800 },
-                // { name: 'Month', value: 'month', factor: 2629800 }, // Avoid average months
-                { name: 'Year (yr)', value: 'year', factor: 31557600 } // Average year
-            ],
-             area: [
-                { name: 'Square Meter (m²)', value: 'sq_meter', factor: 1 },
-                { name: 'Square Kilometer (km²)', value: 'sq_kilometer', factor: 1e6 },
-                { name: 'Square Foot (ft²)', value: 'sq_foot', factor: 0.092903 },
-                { name: 'Acre (ac)', value: 'acre', factor: 4046.86 },
-                { name: 'Hectare (ha)', value: 'hectare', factor: 10000 },
-            ],
-            volume: [
-                { name: 'Cubic Meter (m³)', value: 'cubic_meter', factor: 1 },
-                { name: 'Liter (L)', value: 'liter', factor: 0.001 },
-                { name: 'Milliliter (mL)', value: 'milliliter', factor: 1e-6 },
-                { name: 'US Gallon (gal)', value: 'gallon_us', factor: 0.00378541 },
-                { name: 'US Quart (qt)', value: 'quart_us', factor: 0.000946353 },
-                { name: 'Cubic Foot (ft³)', value: 'cubic_foot', factor: 0.0283168 },
-            ]
+            length: [ { name: 'Meter (m)', value: 'meter', factor: 1 }, { name: 'Kilometer (km)', value: 'kilometer', factor: 1000 }, { name: 'Centimeter (cm)', value: 'centimeter', factor: 0.01 }, { name: 'Millimeter (mm)', value: 'millimeter', factor: 0.001 }, { name: 'Mile (mi)', value: 'mile', factor: 1609.34 }, { name: 'Yard (yd)', value: 'yard', factor: 0.9144 }, { name: 'Foot (ft)', value: 'foot', factor: 0.3048 }, { name: 'Inch (in)', value: 'inch', factor: 0.0254 }, ],
+            mass: [ { name: 'Kilogram (kg)', value: 'kilogram', factor: 1 }, { name: 'Gram (g)', value: 'gram', factor: 0.001 }, { name: 'Milligram (mg)', value: 'milligram', factor: 0.000001 }, { name: 'Pound (lb)', value: 'pound', factor: 0.453592 }, { name: 'Ounce (oz)', value: 'ounce', factor: 0.0283495 }, ],
+            temperature: [ { name: 'Celsius (°C)', value: 'celsius' }, { name: 'Fahrenheit (°F)', value: 'fahrenheit' }, { name: 'Kelvin (K)', value: 'kelvin' }, ],
+            time: [ { name: 'Second (s)', value: 'second', factor: 1 }, { name: 'Minute (min)', value: 'minute', factor: 60 }, { name: 'Hour (hr)', value: 'hour', factor: 3600 }, { name: 'Day (d)', value: 'day', factor: 86400 }, { name: 'Week (wk)', value: 'week', factor: 604800 }, { name: 'Year (yr)', value: 'year', factor: 31557600 } ],
+            area: [ { name: 'Square Meter (m²)', value: 'sq_meter', factor: 1 }, { name: 'Square Kilometer (km²)', value: 'sq_kilometer', factor: 1e6 }, { name: 'Square Foot (ft²)', value: 'sq_foot', factor: 0.092903 }, { name: 'Acre (ac)', value: 'acre', factor: 4046.86 }, { name: 'Hectare (ha)', value: 'hectare', factor: 10000 }, ],
+            volume: [ { name: 'Cubic Meter (m³)', value: 'cubic_meter', factor: 1 }, { name: 'Liter (L)', value: 'liter', factor: 0.001 }, { name: 'Milliliter (mL)', value: 'milliliter', factor: 1e-6 }, { name: 'US Gallon (gal)', value: 'gallon_us', factor: 0.00378541 }, { name: 'US Quart (qt)', value: 'quart_us', factor: 0.000946353 }, { name: 'Cubic Foot (ft³)', value: 'cubic_foot', factor: 0.0283168 }, ]
         };
 
         function getUnitFactor(unitType, unitValue) {
@@ -1087,14 +1196,14 @@
 
         function populateUnits(typeSelect, unitSelect) {
             const selectedType = typeSelect.value;
-            unitSelect.innerHTML = ''; // Clear existing options
+            unitSelect.innerHTML = '';
             units[selectedType]?.forEach(unit => {
                 const option = document.createElement('option');
                 option.value = unit.value;
                 option.textContent = unit.name;
                 unitSelect.appendChild(option);
             });
-             log("Populated units for type:", selectedType);
+            log("Populated units for type:", selectedType);
         }
 
          function convertUnit() {
@@ -1107,51 +1216,34 @@
 
             unitError.textContent = '';
             unitResultDisplay.textContent = '';
+             // Update secondary display in unit section
+            const unitSecondaryDisplay = unitResultDisplay.closest('.result-display-container').querySelector('.secondary-display');
+            if(unitSecondaryDisplay) unitSecondaryDisplay.textContent = '\u00A0'; // Clear secondary
 
-            if (isNaN(value)) {
-                unitError.textContent = 'Please enter a valid value.';
-                return;
-            }
-
-            if (fromType !== toType) {
-                unitError.textContent = 'Cannot convert between different unit types (e.g., length to mass).';
-                log("Unit type mismatch");
-                return;
-            }
+            if (isNaN(value)) { unitError.textContent = 'Please enter a valid value.'; return; }
+            if (fromType !== toType) { unitError.textContent = 'Cannot convert between different unit types.'; return; }
 
             let convertedValue;
-
-            // Special handling for temperature
             if (fromType === 'temperature') {
-                if (fromUnit === toUnit) {
-                    convertedValue = value;
-                } else if (fromUnit === 'celsius') {
-                    convertedValue = (toUnit === 'fahrenheit') ? (value * 9/5) + 32 : value + 273.15;
-                } else if (fromUnit === 'fahrenheit') {
-                    convertedValue = (toUnit === 'celsius') ? (value - 32) * 5/9 : (value - 32) * 5/9 + 273.15;
-                } else { // fromUnit is Kelvin
-                    convertedValue = (toUnit === 'celsius') ? value - 273.15 : (value - 273.15) * 9/5 + 32;
-                }
+                if (fromUnit === toUnit) { convertedValue = value; }
+                else if (fromUnit === 'celsius') { convertedValue = (toUnit === 'fahrenheit') ? (value * 9/5) + 32 : value + 273.15; }
+                else if (fromUnit === 'fahrenheit') { convertedValue = (toUnit === 'celsius') ? (value - 32) * 5/9 : (value - 32) * 5/9 + 273.15; }
+                else { convertedValue = (toUnit === 'celsius') ? value - 273.15 : (value - 273.15) * 9/5 + 32; }
             } else {
-                // Factor-based conversion for other types
                 const factorFrom = getUnitFactor(fromType, fromUnit);
                 const factorTo = getUnitFactor(toType, toUnit);
-
-                if (factorFrom === undefined || factorTo === undefined) {
-                    unitError.textContent = 'Internal error: Unit factors not found.';
-                    log("Unit factor error:", fromType, fromUnit, factorFrom, toType, toUnit, factorTo);
-                    return;
-                }
-                 // Convert value to base unit first, then to target unit
+                if (factorFrom === undefined || factorTo === undefined) { unitError.textContent = 'Internal error: Unit factors not found.'; return; }
                 const valueInBase = value * factorFrom;
                 convertedValue = valueInBase / factorTo;
             }
 
-
             const fromUnitName = units[fromType].find(u => u.value === fromUnit)?.name || fromUnit;
             const toUnitName = units[toType].find(u => u.value === toUnit)?.name || toUnit;
 
-            unitResultDisplay.textContent = `${value.toLocaleString()} ${fromUnitName} = ${convertedValue.toLocaleString(undefined, { maximumFractionDigits: 5 })} ${toUnitName}`;
+            unitResultDisplay.textContent = `${convertedValue.toLocaleString(undefined, { maximumFractionDigits: 5 })}`;
+             if(unitSecondaryDisplay) {
+                 unitSecondaryDisplay.textContent = `${value.toLocaleString()} ${fromUnitName} = Result in ${toUnitName}`;
+             }
             log("Unit Conversion Result:", convertedValue);
         }
 
@@ -1164,130 +1256,75 @@
             log("Calculating Loan:", loanAmount, annualInterestRate, loanTermYears);
 
             loanError.textContent = '';
-            loanResultDisplay.textContent = '';
+            loanResultDisplay.textContent = ''; // Clear main display first
+            if(loanSecondaryDisplay) loanSecondaryDisplay.textContent = '\u00A0'; // Clear secondary display
 
-            if (isNaN(loanAmount) || loanAmount <= 0) {
-                loanError.textContent = 'Please enter a valid positive loan amount.';
-                return;
-            }
-            if (isNaN(annualInterestRate) || annualInterestRate < 0) {
-                loanError.textContent = 'Please enter a valid non-negative interest rate.';
-                return;
-            }
-            if (isNaN(loanTermYears) || loanTermYears <= 0) {
-                loanError.textContent = 'Please enter a valid positive loan term in years.';
-                return;
-            }
+            if (isNaN(loanAmount) || loanAmount <= 0) { loanError.textContent = 'Please enter a valid positive loan amount.'; return; }
+            if (isNaN(annualInterestRate) || annualInterestRate < 0) { loanError.textContent = 'Please enter a valid non-negative interest rate.'; return; }
+            if (isNaN(loanTermYears) || loanTermYears <= 0) { loanError.textContent = 'Please enter a valid positive loan term in years.'; return; }
 
             const monthlyInterestRate = (annualInterestRate / 100) / 12;
             const totalPayments = loanTermYears * 12;
-
             let monthlyPayment;
-            if (totalPayments <= 0) {
-                 loanError.textContent = 'Loan term must result in at least one payment.';
-                 return;
-            }
 
+            if (totalPayments <= 0) { loanError.textContent = 'Loan term must result in at least one payment.'; return; }
             if (monthlyInterestRate === 0) {
                 monthlyPayment = loanAmount / totalPayments;
             } else {
                 const numerator = loanAmount * monthlyInterestRate * Math.pow(1 + monthlyInterestRate, totalPayments);
                 const denominator = Math.pow(1 + monthlyInterestRate, totalPayments) - 1;
-                 if (denominator === 0) {
-                     loanError.textContent = 'Calculation error (denominator is zero).';
-                     return;
-                 }
+                 if (denominator === 0) { loanError.textContent = 'Calculation error (denominator is zero).'; return; }
                 monthlyPayment = numerator / denominator;
             }
 
             const totalRepayment = monthlyPayment * totalPayments;
             const totalInterest = totalRepayment - loanAmount;
 
-            loanResultDisplay.innerHTML = `
-                <div class="text-center">
-                    <div class="text-sm opacity-80 mb-1">Monthly Payment</div>
-                    <div class="text-2xl font-bold mb-3">$${monthlyPayment.toFixed(2)}</div>
-                    <div class="text-sm opacity-80 mb-1">Total Repayment</div>
-                    <div class="text-lg mb-3">$${totalRepayment.toFixed(2)}</div>
-                    <div class="text-sm opacity-80 mb-1">Total Interest</div>
-                    <div class="text-lg">$${totalInterest.toFixed(2)}</div>
-                </div>
-            `;
-             log("Loan Calculation Result: Monthly=", monthlyPayment, "Total=", totalRepayment);
+            // Update the main display with the monthly payment
+            loanResultDisplay.textContent = `$${monthlyPayment.toFixed(2)}`;
+            // Update the secondary display with total repayment and interest
+            if(loanSecondaryDisplay) {
+                loanSecondaryDisplay.textContent = `Monthly | Total Repay: $${totalRepayment.toFixed(2)} | Total Interest: $${totalInterest.toFixed(2)}`;
+            }
+
+            log("Loan Calculation Result: Monthly=", monthlyPayment, "Total=", totalRepayment);
         }
 
         // --- Graphing Calculator Functions ---
         function plotGraph() {
-            // Check if functionPlot is loaded
-             if (typeof functionPlot !== 'function') {
-                graphError.textContent = "Graphing library not loaded yet.";
-                console.error("functionPlot is not defined or not a function.");
-                return;
-            }
+             if (typeof functionPlot !== 'function') { graphError.textContent = "Graphing library not loaded yet."; console.error("functionPlot is not defined or not a function."); return; }
 
             const expression = functionInput.value.trim();
             const xMin = parseFloat(xminInput.value);
             const xMax = parseFloat(xmaxInput.value);
             log("Plotting Graph:", expression, "Range:", xMin, "to", xMax);
 
-            graphError.textContent = ''; // Clear previous errors
-            graphContainer.innerHTML = ''; // Clear previous graph
+            graphError.textContent = '';
+            graphContainer.innerHTML = ''; // Clear previous graph first
 
-            if (expression === '') {
-                graphError.textContent = 'Please enter a function to plot.';
-                return;
-            }
-            if (isNaN(xMin) || isNaN(xMax)) {
-                graphError.textContent = 'Please enter valid numbers for X Min and X Max.';
-                return;
-            }
-            if (xMax <= xMin) {
-                graphError.textContent = 'X Max must be greater than X Min.';
-                return;
-            }
+            if (expression === '') { graphError.textContent = 'Please enter a function to plot.'; return; }
+            if (isNaN(xMin) || isNaN(xMax)) { graphError.textContent = 'Please enter valid numbers for X Min and X Max.'; return; }
+            if (xMax <= xMin) { graphError.textContent = 'X Max must be greater than X Min.'; return; }
 
             try {
-                 // Ensure the container is visible and has dimensions before plotting
-                if (graphContainer.offsetWidth === 0 || graphContainer.offsetHeight === 0) {
-                    console.warn("Graph container has no dimensions. Plotting might fail or be invisible.");
-                    // Optionally wait briefly for layout adjustments
-                    // setTimeout(plotGraph, 100);
-                    // return;
-                }
+                if (graphContainer.offsetWidth === 0 || graphContainer.offsetHeight === 0) { console.warn("Graph container has no dimensions."); }
 
                 const plotOptions = {
                     target: graphContainer,
-                    width: graphContainer.clientWidth, // Use container's current width
-                    height: graphContainer.clientHeight, // Use container's current height
-                    data: [{
-                        fn: expression,
-                        // range: [xMin, xMax], // function-plot might handle domain better automatically sometimes
-                        color: isDarkMode ? 'var(--md-sys-color-primary-dark)' : 'var(--md-sys-color-primary-light)',
-                        graphType: 'polyline' // or 'scatter'
-                    }],
+                    width: graphContainer.clientWidth || 400, // Provide fallback width
+                    height: graphContainer.clientHeight || 350, // Provide fallback height
+                    data: [{ fn: expression, color: isDarkMode ? 'var(--md-sys-color-primary-dark)' : 'var(--md-sys-color-primary-light)', graphType: 'polyline' }],
                     grid: true,
                     xAxis: { domain: [xMin, xMax], label: 'x' },
                     yAxis: { label: 'f(x)' },
-                    tip: { // Tooltip configuration
-                        xLine: true, // Show vertical line
-                        yLine: true, // Show horizontal line
-                         renderer: function (x, y, index) {
-                           return `x: ${x.toFixed(3)}<br>y: ${y.toFixed(3)}`
-                         }
-                    },
-                     // Add plugins if needed, e.g., zoom
-                    // plugins: [
-                    //     functionPlot.plugins.zoom()
-                    // ]
+                    tip: { xLine: true, yLine: true, renderer: (x, y) => `x: ${x.toFixed(3)}<br>y: ${y.toFixed(3)}` }
                 };
-
                 log("FunctionPlot options:", plotOptions);
                 functionPlot(plotOptions);
-
             } catch (error) {
                 console.error("Graphing Error:", error);
-                graphError.textContent = `Error plotting: ${error.message}. Check function syntax.`;
-                graphContainer.innerHTML = ''; // Clear potentially broken graph
+                graphError.textContent = `Error plotting: ${error.message}. Check syntax.`;
+                graphContainer.innerHTML = '';
             }
         }
 
@@ -1296,16 +1333,49 @@
             isDarkMode = !isDarkMode;
             document.body.classList.toggle('dark-mode', isDarkMode);
             themeText.textContent = isDarkMode ? 'Dark' : 'Light';
-            themeToggleBtn.querySelector('i').classList.toggle('fa-moon', !isDarkMode); // Icon shows the *opposite* of current state
+            themeToggleBtn.querySelector('i').classList.toggle('fa-moon', !isDarkMode);
             themeToggleBtn.querySelector('i').classList.toggle('fa-sun', isDarkMode);
             log("Theme toggled. Dark mode:", isDarkMode);
 
-            // Re-plot graph if visible, as colors might need to change
+            // Re-plot graph if visible
             const activeSection = document.querySelector('.calculator-section.active');
             if (activeSection && activeSection.id === 'graphing-calculator' && typeof functionPlot === 'function') {
                 plotGraph();
             }
         }
+
+        // --- Keyboard Input Handling ---
+        function handleKeyboardInput(event) {
+            // Only process if basic calculator is active
+            if (!isBasicCalculatorActive()) {
+                return;
+            }
+
+            const key = event.key;
+            log("Key pressed:", key);
+
+            if (key >= '0' && key <= '9') {
+                inputDigit(key);
+                event.preventDefault(); // Prevent default browser action for number keys
+            } else if (key === '.') {
+                inputDecimal();
+                event.preventDefault();
+            } else if (key === '+' || key === '-' || key === '*' || key === '/') {
+                handleOperator(key);
+                event.preventDefault();
+            } else if (key === 'Enter' || key === '=') {
+                calculate();
+                event.preventDefault();
+            } else if (key === 'Backspace') {
+                backspace();
+                event.preventDefault();
+            } else if (key === 'Escape' || key.toLowerCase() === 'c') {
+                clearDisplay();
+                event.preventDefault();
+            }
+            // Add more key bindings if needed (e.g., % )
+        }
+
 
         // --- Event Listeners ---
         themeToggleBtn.addEventListener('click', toggleTheme);
@@ -1317,37 +1387,50 @@
             });
         });
 
-        // Basic Calculator Buttons (Event delegation might be more efficient for many buttons)
-        // This example uses direct onclick in HTML, which is simpler for this case.
+        // Basic Calculator Buttons - Onclick handlers are in the HTML
 
         // Currency Converter
         if (convertCurrencyBtn) convertCurrencyBtn.addEventListener('click', convertCurrency);
         if (swapCurrencyBtn) swapCurrencyBtn.addEventListener('click', swapCurrencies);
-        if (swapCurrencySmBtn) swapCurrencySmBtn.addEventListener('click', swapCurrencies);
-
+        // if (swapCurrencySmBtn) swapCurrencySmBtn.addEventListener('click', swapCurrencies); // Removed
 
         // Unit Converter
-        if (fromUnitTypeSelect) fromUnitTypeSelect.addEventListener('change', () => populateUnits(fromUnitTypeSelect, fromUnitSelect));
-        if (toUnitTypeSelect) toUnitTypeSelect.addEventListener('change', () => populateUnits(toUnitTypeSelect, toUnitSelect));
-        if (convertUnitBtn) convertUnitBtn.addEventListener('click', convertUnit);
+        if (fromUnitTypeSelect) fromUnitTypeSelect.addEventListener('change', () => { populateUnits(fromUnitTypeSelect, fromUnitSelect); convertUnit(); }); // Convert on type change
+        if (toUnitTypeSelect) toUnitTypeSelect.addEventListener('change', () => { populateUnits(toUnitTypeSelect, toUnitSelect); convertUnit(); }); // Convert on type change
+        if (fromUnitSelect) fromUnitSelect.addEventListener('change', convertUnit); // Convert on unit change
+        if (toUnitSelect) toUnitSelect.addEventListener('change', convertUnit); // Convert on unit change
+        if (unitValueInput) unitValueInput.addEventListener('input', convertUnit); // Convert on value input
+        if (convertUnitBtn) convertUnitBtn.addEventListener('click', convertUnit); // Also keep button click
 
         // Loan Calculator
         if (calculateLoanBtn) calculateLoanBtn.addEventListener('click', calculateLoan);
+         // Recalculate loan on input change for immediate feedback
+        [loanAmountInput, interestRateInput, loanTermInput].forEach(input => {
+            if (input) input.addEventListener('input', calculateLoan);
+        });
+
 
         // Graphing Calculator
         if (plotGraphBtn) plotGraphBtn.addEventListener('click', plotGraph);
+        // Optional: Re-plot graph when inputs change
+        [functionInput, xminInput, xmaxInput].forEach(input => {
+             if(input) input.addEventListener('input', debounce(plotGraph, 500)); // Debounced plot on input
+        });
+
 
         // Window Resize Handling (Debounced)
          const debouncedResizeHandler = debounce(() => {
             log("Window resized");
             const activeSection = document.querySelector('.calculator-section.active');
-            // Re-plot graph on resize if it's the active section
             if (activeSection && activeSection.id === 'graphing-calculator' && typeof functionPlot === 'function') {
                  log("Re-plotting graph due to resize");
                 plotGraph();
             }
         }, 250);
         window.addEventListener('resize', debouncedResizeHandler);
+
+        // Keyboard Listener
+        window.addEventListener('keydown', handleKeyboardInput);
 
 
         // --- Initial Setup ---
@@ -1360,40 +1443,35 @@
              themeToggleBtn.querySelector('i').classList.toggle('fa-moon', !isDarkMode);
              themeToggleBtn.querySelector('i').classList.toggle('fa-sun', isDarkMode);
 
+             // Set initial scientific mode button highlight
+             setMode(scientificMode);
+
 
              // Determine initial active calculator based on the 'active' class in HTML
             const initialCalculatorNavItem = document.querySelector('.calculator-nav-item.active');
             const initialCalculatorId = initialCalculatorNavItem?.dataset.target || 'basic-calculator'; // Default to basic
             log("Initial calculator ID:", initialCalculatorId);
 
-            // Activate the initial section (redundant if HTML is correct, but safe)
+            // Activate the initial section
             updateActiveNav(initialCalculatorId);
 
 
             // Initial population/calculation for relevant sections
-            if (fromUnitTypeSelect && fromUnitSelect) {
-                populateUnits(fromUnitTypeSelect, fromUnitSelect);
-            }
-             if (toUnitTypeSelect && toUnitSelect) {
-                 populateUnits(toUnitTypeSelect, toUnitSelect);
-             }
-            if (unitValueInput?.value && convertUnitBtn) convertUnit(); // Run initial unit conversion if value exists
-            if (amountInput?.value && convertCurrencyBtn) convertCurrency(); // Run initial currency conversion if value exists
-            if (loanAmountInput?.value && calculateLoanBtn) calculateLoan(); // Run initial loan calculation if values exist
+            if (fromUnitTypeSelect && fromUnitSelect) { populateUnits(fromUnitTypeSelect, fromUnitSelect); }
+            if (toUnitTypeSelect && toUnitSelect) { populateUnits(toUnitTypeSelect, toUnitSelect); }
+            if (unitValueInput?.value && convertUnitBtn) convertUnit();
+            if (amountInput?.value && convertCurrencyBtn) convertCurrency();
+            if (loanAmountInput?.value && calculateLoanBtn) calculateLoan();
+
+            // Update basic display initially
+            updateBasicDisplay();
 
             // Initial plot if graphing calculator is the active one
-            // The updateActiveNav function already handles the initial plot call
-            // We just need to ensure it happens *after* functionPlot is likely loaded.
              if (initialCalculatorId === 'graphing-calculator') {
-                 // Small delay to increase chance of functionPlot being ready
-                 setTimeout(() => {
-                     if (typeof functionPlot === 'function') {
-                         plotGraph();
-                     } else {
-                         console.error("functionPlot still not ready on initial load check.");
-                         graphError.textContent = "Error loading graphing library.";
-                     }
-                 }, 100); // Adjust delay if needed
+                 setTimeout(() => { // Delay slightly
+                     if (typeof functionPlot === 'function') { plotGraph(); }
+                     else { console.error("functionPlot still not ready on initial load check."); graphError.textContent = "Error loading graphing library."; }
+                 }, 100);
              }
 
             log("Initial setup complete.");
